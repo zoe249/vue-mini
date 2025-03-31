@@ -4,12 +4,13 @@ const targetMap = new WeakMap()
 
 export function createDep(cleanup, key) {
   const dep = new Map() as any
-  dep.cleanup = cleanup
-  dep.name = key
+  dep.cleanup = cleanup // 清理方法
+  dep.name = key // 自定义标识，标识这映射表是发给哪个属性的
   return dep
 }
 
 export function tarck(target, key) {
+
   if (activeEffect) {
     let depsMap = targetMap.get(target)
 
@@ -27,7 +28,8 @@ export function tarck(target, key) {
     }
     // 将当前的 effect 放入到 dep 映射表中，后续可以根据值的变化触发此dep中存放的effect
     tarckEffect(activeEffect, dep)
-    console.log(targetMap)
+    console.log('targetMap', targetMap)
+    console.log('dep', dep)
   }
 }
 

@@ -21,7 +21,7 @@ export const mutableHandlers: ProxyHandler<any> = {
     let result = Reflect.set(target, key, value, recevier)
     console.log(oldValue, value)
     if (oldValue !== value) {
-      // debugger
+      // 触发页面更新
       trigger(target, key, value, oldValue)
     }
     return result
