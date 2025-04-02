@@ -1,4 +1,6 @@
+import { isObject } from "@vue/shared"
 import { activeEffect } from "./effect"
+import { reactive } from './reactive'
 import { tarck, trigger } from "./reactiveEffect"
 
 export enum ReactiveFlags {
@@ -13,7 +15,11 @@ export const mutableHandlers: ProxyHandler<any> = {
     // 依赖收集
     tarck(target, key)
     // 当取值的时候应该让响应式属性和 effect 映射起来
-    return Reflect.get(target, key, recevier)
+    const res = Reflect.get(target, key, recevier)
+    if (isObject(res)) {
+      return reactive(res)
+    }
+    return res
   },
   set(target, key, value, recevier) {
     // 找到属性，让对应的 effect 重新执行

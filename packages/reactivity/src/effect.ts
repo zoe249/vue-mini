@@ -5,7 +5,7 @@ export function effect(fn, options?) {
 
   _effect.run()
 
-  if (options.scheduler) {
+  if (options) {
     Object.assign(_effect, options)
   }
 
@@ -21,7 +21,6 @@ function preCleanEffect(effect) {
     effect._depsLength = 0
     effect._tarckId++ // 每次执行effct，_tarckId +1, 如果同一个effect执行，id就是相同的
   }
-
 }
 
 function postCleanEffect(effect) {
@@ -44,6 +43,7 @@ class ReactiveEffect {
    */
   deps = []
   _depsLength = 0
+  _running = 0
   public active = true
 
   /**
@@ -65,8 +65,11 @@ class ReactiveEffect {
       activeEffect = this
       // effect 重新执行前，需要将上一次的依赖清空 effect.deps
       preCleanEffect(this)
+      this._running++
       return this.fn() // 依赖收集 state.name state.age
     } finally {
+      this._running--
+      postCleanEffect(this)
       activeEffect = lastEffect
     }
   }
@@ -78,7 +81,7 @@ class ReactiveEffect {
 
 function cleanDepEffect(dep, effect) {
   dep.delete(effect)
-  if (dep.size == 0) { 
+  if (dep.size == 0) {
     dep.cleanup() // 如果 map 为空，则删除这个属性
   }
 }
@@ -87,7 +90,7 @@ function cleanDepEffect(dep, effect) {
  * 依赖收集 双向绑定
  * 将 effect 存放在 dep 中，根据值的变化触发此 dep 中存放的 effect
  * effect 的 deps 属性中存放 dep
- * 
+ *
  * 1._trackId 用于记录执行次数（防止在一个属性在当前effect中多次依赖收集）只收集一次
  * 2.拿到上一次依赖的最后一个和这次比较
  */
@@ -95,7 +98,6 @@ export function tarckEffect(effect, dep) {
   // 需要重新收集依赖，将不需要的移除
   // dep.set(effect, effect._tarckId)
   // effect.deps[effect._depsLength++] = dep
-  console.log(dep.get(effect), effect._tarckId)
   if (dep.get(effect) !== effect._tarckId) {
     dep.set(effect, effect._tarckId)
 
@@ -114,8 +116,11 @@ export function tarckEffect(effect, dep) {
 
 export function triggerEffects(deps) {
   for (const effect of deps.keys()) {
-    if (effect.scheduler) {
-      effect.scheduler()
+    if (!effect._running) {
+      if (effect.scheduler) {
+        // 如果当前effect不在执行中
+        effect.scheduler()
+      }
     }
   }
 }
