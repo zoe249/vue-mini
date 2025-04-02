@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { reactive, effect, ref } from './reactivity.js';
+
+    const flag = ref(false)
+    console.log(flag.value)
+    effect(() => {
+      app.innerHTML = flag.value ? 'ddd' : 30
+    })
+
+    setTimeout(() => {
+      flag.value = true
+    }, 1000)
+    
+  </script>
+</body>
+</html>
