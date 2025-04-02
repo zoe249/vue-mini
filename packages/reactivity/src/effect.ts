@@ -4,10 +4,35 @@ export function effect(fn, options?) {
   })
 
   _effect.run()
-  return _effect
+
+  if (options.scheduler) {
+    Object.assign(_effect, options)
+  }
+
+  const runner = _effect.run.bind(_effect)
+  runner.effect = _effect // 可以在 run 方法上获取到 effect 的引用
+  return runner
 }
 
 export let activeEffect
+
+function preCleanEffect(effect) {
+  if (effect) {
+    effect._depsLength = 0
+    effect._tarckId++ // 每次执行effct，_tarckId +1, 如果同一个effect执行，id就是相同的
+  }
+
+}
+
+function postCleanEffect(effect) {
+  if (effect.deps.length > effect._depsLength) {
+    for (let i = effect._depsLength; i < effect.deps.length; i++) {
+      cleanDepEffect(effect.deps[i], effect)
+    }
+
+    effect.deps.length = effect._depsLength
+  }
+}
 
 class ReactiveEffect {
   /**
@@ -38,6 +63,8 @@ class ReactiveEffect {
 
     try {
       activeEffect = this
+      // effect 重新执行前，需要将上一次的依赖清空 effect.deps
+      preCleanEffect(this)
       return this.fn() // 依赖收集 state.name state.age
     } finally {
       activeEffect = lastEffect
@@ -49,15 +76,40 @@ class ReactiveEffect {
   }
 }
 
+function cleanDepEffect(dep, effect) {
+  dep.delete(effect)
+  if (dep.size == 0) { 
+    dep.cleanup() // 如果 map 为空，则删除这个属性
+  }
+}
+
 /**
- * 双向绑定
+ * 依赖收集 双向绑定
  * 将 effect 存放在 dep 中，根据值的变化触发此 dep 中存放的 effect
- * effect 的 deps 属性中存放 dep，
+ * effect 的 deps 属性中存放 dep
+ * 
+ * 1._trackId 用于记录执行次数（防止在一个属性在当前effect中多次依赖收集）只收集一次
+ * 2.拿到上一次依赖的最后一个和这次比较
  */
 export function tarckEffect(effect, dep) {
-  dep.set(effect, effect._tarckId)
-  effect.deps[effect._depsLength++] = dep
-  console.log(effect.deps)
+  // 需要重新收集依赖，将不需要的移除
+  // dep.set(effect, effect._tarckId)
+  // effect.deps[effect._depsLength++] = dep
+  console.log(dep.get(effect), effect._tarckId)
+  if (dep.get(effect) !== effect._tarckId) {
+    dep.set(effect, effect._tarckId)
+
+    let oldDep = effect.deps[effect._depsLength]
+    if (oldDep !== dep) {
+      if (oldDep) {
+        // 清除旧值
+        cleanDepEffect(oldDep, effect)
+      }
+      effect.deps[effect._depsLength++] = dep
+    } else {
+      effect._depsLength++
+    }
+  }
 }
 
 export function triggerEffects(deps) {

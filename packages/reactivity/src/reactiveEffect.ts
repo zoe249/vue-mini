@@ -9,27 +9,33 @@ export function createDep(cleanup, key) {
   return dep
 }
 
-export function tarck(target, key) {
+interface Dep {
+  cleanup: () => void;
+  name: string;
+}
 
+type TargetMap = WeakMap<object, Map<string | symbol, Dep>>;
+
+export function tarck(target: object, key: string | symbol): void {
   if (activeEffect) {
-    let depsMap = targetMap.get(target)
+    let depsMap: Map<string | symbol, Dep> | undefined = targetMap.get(target);
 
     if (!depsMap) {
-      targetMap.set(target, (depsMap = new Map()))
+      targetMap.set(target, (depsMap = new Map<string | symbol, Dep>()));
     }
 
-    let dep = depsMap.get(key)
+    let dep: Dep | undefined = depsMap.get(key);
 
     if (!dep) {
       depsMap.set(
         key,
-        dep = createDep(() => depsMap.delete(key), key)
-      )
+        (dep = createDep(() => depsMap!.delete(key), key))
+      );
     }
     // 将当前的 effect 放入到 dep 映射表中，后续可以根据值的变化触发此dep中存放的effect
-    tarckEffect(activeEffect, dep)
-    console.log('targetMap', targetMap)
-    console.log('dep', dep)
+    tarckEffect(activeEffect, dep);
+    console.log('targetMap', targetMap);
+    console.log('dep', dep);
   }
 }
 
