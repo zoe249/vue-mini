@@ -45,3 +45,47 @@ function triggerRefValue(ref) {
     triggerEffects(dep)
   }
 }
+
+class ObjectRefImp {
+  public __v_isRef = false // 增加ref标识
+  constructor(public _object, public _key) {
+
+  }
+
+  get value() {
+    return this._object[this._key]
+  }
+  set value(newValue) {
+    this._object[this._key] = newValue
+  }
+}
+
+export function toRef(object, key) {
+  return new ObjectRefImp(object, key)
+}
+
+export function toRefs(object) {
+  const res = {}
+  Object.keys(object).forEach(key => {
+    res[key] = toRef(object, key)
+  })
+  return res
+}
+
+export function proxyRefs(objectWithRef) {
+  return new Proxy(objectWithRef, {
+    get(target, key, recevier) {
+      let r = Reflect.get(target, key, recevier)
+      return r.__v_isRef ? r.value : r
+    },
+    set(target, key, value, recevier) {
+      const oldValue = target[key]
+      if (oldValue.__v_isRef) {
+        oldValue.value = value
+        return true
+      } else {
+        return Reflect.set(target, key, value, recevier)
+      }
+    }
+  })
+}
