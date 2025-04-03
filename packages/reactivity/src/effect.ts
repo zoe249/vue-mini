@@ -1,3 +1,5 @@
+import { DirtyLevels } from "./constants"
+
 export function effect(fn, options?) {
   const _effect = new ReactiveEffect(fn, () => {
     _effect.run()
@@ -33,7 +35,7 @@ function postCleanEffect(effect) {
   }
 }
 
-class ReactiveEffect {
+export class ReactiveEffect {
   /**
    * 用于记录当前 effect 执行了几次
    */
@@ -44,6 +46,7 @@ class ReactiveEffect {
   deps = []
   _depsLength = 0
   _running = 0
+  _dirtyLevel = DirtyLevels.Dirty
   public active = true
 
   /**
@@ -52,9 +55,16 @@ class ReactiveEffect {
    */
   constructor(public fn, public scheduler) {}
 
+  public get dirty() {
+    return this._dirtyLevel === DirtyLevels.Dirty
+  }
+  public set dirty(v) {
+    this._dirtyLevel = v ? DirtyLevels.Dirty : DirtyLevels.NoDirty
+  }
+
   run() {
     // 执行fn
-    console.log('first')
+    this._dirtyLevel = DirtyLevels.NoDirty
     if (!this.active) {
       return this.fn()
     }

@@ -1,5 +1,6 @@
 import { isObject } from "@vue/shared";
-import { ReactiveFlags, mutableHandlers } from "./baseHandlers";
+import { mutableHandlers } from "./baseHandlers";
+import { ReactiveFlags } from "./constants";
 
 
 // 用户记录代理后的响应式对象，可以复用
