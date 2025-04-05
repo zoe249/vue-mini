@@ -126,6 +126,12 @@ export function tarckEffect(effect, dep) {
 
 export function triggerEffects(deps) {
   for (const effect of deps.keys()) {
+
+    // 当前值是不脏的，触发更新需要将其设置为脏
+    if (effect._dirtyLevel < DirtyLevels.Dirty) {
+      effect._dirtyLevel = DirtyLevels.Dirty
+    }
+
     if (!effect._running) {
       if (effect.scheduler) {
         // 如果当前effect不在执行中

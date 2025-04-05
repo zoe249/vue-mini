@@ -10,8 +10,9 @@ class ComputedRefImpl {
     this.effect = new ReactiveEffect(
       () => getter(this._value),
       () => {
-        // 计算属性依赖的值发生变化，触发渲染
+        // 计算属性的依赖发生了变化，重新执行 effect
         triggerRefValue(this)
+        // 依赖的属性发生变化后需要触发重新渲染，还需要将 dirty 变为 true
       }
     )
   }

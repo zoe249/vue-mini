@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { reactive, effect, computed } from './reactivity.js'
+
+      const obj = {
+        name: '菠萝吹雪',
+        age: 2,
+        flag: true,
+        info: {
+          adress: '北京市朝阳区'
+        }
+      }
+      const state = reactive(obj)
+
+      const aliasName = computed({
+        get(oldValue) {
+          console.log('computed', oldValue)
+          return state.name + '的别名是' + state.name
+        },
+        set(val) {
+          console.log('set', val)
+          state.name = val
+        }
+      })
+      effect(() => {
+        console.log(aliasName.value)
+        console.log(aliasName.value)
+        console.log(aliasName.value)
+      })
+      setTimeout(() => {
+        state.name = '小明'
+      }, 1000)
+      // setTimeout(() => {
+      //   aliasName.value = '小红'
+      // }, 2000)
+    </script>
+  </body>
+</html>
