@@ -24,7 +24,6 @@ export const mutableHandlers: ProxyHandler<any> = {
     // 找到属性，让对应的 effect 重新执行
     let oldValue = target[key]
     let result = Reflect.set(target, key, value, recevier)
-    console.log(oldValue, value)
     if (oldValue !== value) {
       // 触发页面更新
       trigger(target, key, value, oldValue)

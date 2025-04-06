@@ -34,8 +34,6 @@ export function tarck(target: object, key: string | symbol): void {
     }
     // 将当前的 effect 放入到 dep 映射表中，后续可以根据值的变化触发此dep中存放的effect
     tarckEffect(activeEffect, dep);
-    console.log('targetMap', targetMap);
-    console.log('dep', dep);
   }
 }
 
