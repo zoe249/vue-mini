@@ -11,7 +11,7 @@ export function createRef(value) {
 }
 
 class RefImpl {
-  public __v_isRef = false // 增加ref标识
+  public __v_isRef = true // 增加ref标识
   public _value // 用来保存 ref 的值
   public dep
   constructor(public rawValue) {
@@ -50,7 +50,7 @@ export function triggerRefValue(ref) {
 }
 
 class ObjectRefImp {
-  public __v_isRef = false // 增加ref标识
+  public __v_isRef = true // 增加ref标识
   constructor(public _object, public _key) {
 
   }
@@ -91,4 +91,8 @@ export function proxyRefs(objectWithRef) {
       }
     }
   })
+}
+
+export function isRef(value) {
+  return value && value.__v_isRef
 }
