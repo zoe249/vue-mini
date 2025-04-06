@@ -37,7 +37,7 @@ export function trackRefValue(ref) {
   if (activeEffect) {
     tarckEffect(
       activeEffect, 
-      ref.dep = createDep(() => ref.dep = undefined, 'undefined')
+      ref.dep = ref.dep || createDep(() => ref.dep = undefined, 'undefined')
     )
   }
 }

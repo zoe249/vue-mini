@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import {
+        reactive,
+        ref,
+        effect,
+        computed,
+        watch,
+        watchEffect
+      } from './reactivity.js'
+
+      const obj = {
+        name: '菠萝吹雪',
+        age: 2,
+        flag: true,
+        info: {
+          adress: '北京市朝阳区'
+        }
+      }
+      const state = reactive(obj)
+      const name = ref('段金成1111')
+      // console.log(name)
+      // watch(
+      //   () => state.name,
+      //   // name,
+      //   function (newValue, oldValue) {
+      //     console.log({
+      //       'oldValue': oldValue,
+      //       'newValue': newValue
+      //     })
+      //   },
+      //   {
+      //     deep: true,
+      //     immediate: true
+      //   }
+      // )
+
+      const unwatch = watchEffect(() => {
+        console.log(state.name + state.age)
+      })
+      
+      unwatch()
+
+      // console.log('unwatch', unwatch)
+      setTimeout(() => {
+        // name.value = '菠萝'
+        state.name = '菠萝'
+      }, 1000)
+    </script>
+  </body>
+</html>
