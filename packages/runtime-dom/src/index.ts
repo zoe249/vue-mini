@@ -1,16 +1,14 @@
-
-
 import { nodeOps } from './nodeOps'
 import patchProp from './patchProp'
+
+import { createRenderer } from '@vue/runtime-core'
 
 /**
  * 将节点操作盒属性操作合并
  */
 const renderOptions = Object.assign({ patchProp }, nodeOps)
-function createRenderer() {}
 
-// createRenderer(renderOptions).render()
-export {
-  renderOptions
+export const render = (vnode, container) => {
+  return createRenderer(renderOptions).render(vnode, container)
 }
-export * from '@vue/reactivity'
+export * from '@vue/runtime-core'
