@@ -21,7 +21,7 @@ const format = args.f || 'iife' // 打包后的模块化规范
 // 入口文件 根据命令行提供的路径来解析
 const entry = resolve(__dirname, `../packages/${target}/src/index.ts`)
 const pkg = require(`../packages/${target}/package.json`)
-
+console.log( resolve(__dirname, `../packages/${target}/src/index.ts`))
 
 // 根据需要进行打包
 esbuild.context({
