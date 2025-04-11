@@ -5,3 +5,5 @@ export function isObject(value) {
 export function isFuntion(value) {
   return typeof value === 'function'
 }
+
+export * from './shapelags'

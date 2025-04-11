@@ -1,3 +1,5 @@
+import { ShapeFlags } from "@vue/shared"
+
 export function createRenderer(renderOptions) {
 
   const {
@@ -12,8 +14,41 @@ export function createRenderer(renderOptions) {
     patchProp: hostPatchProp
   } = renderOptions
 
-  const patch = (n1, n2, container) => {
+  const mountChildren = (children, container) => {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i]
+      patch(null, child, container) // 递归调用patch方法
+    }
+  }
 
+  const mountElement = (vnode, container) => {
+    console.log(vnode)
+    const { type, children, props, shapeFlag } = vnode
+    let el = hostCreateElement(type) // 创建真实元素
+
+    if (props) {
+      for (const key in props) {
+        hostPatchProp(el, key, null, props[key]) // 给元素添加属性
+      }
+    }
+    // 9 & 8 > 0 表示节点是文本节点
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      hostSetElementText(el, children)
+    } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      mountChildren(children, el)
+    }
+
+    hostInsert(el, container)
+  }
+
+  const patch = (n1, n2, container) => {
+    // 两次渲染同一个元素，直接跳过
+    if (n1 == n2) return 
+
+    if (n1 == null) {
+      // 初始化操作
+      mountElement(n2, container)
+    }
   }
   
   /**

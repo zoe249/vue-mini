@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    console.log(app)
+    import { 
+      // createRenderer, 
+      // render,
+      h
+    } from '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
+
+    import {
+      // createRenderer,
+      // renderOptions,
+      render
+    } from './runtime-dom.js'
+    /**
+     * 1. createRenderer 可以自己创建一个渲染器
+     * 2. render 用内置的渲染器来渲染
+     * 3. h 用来创建虚拟节点
+     * 
+     * runtime-dom 提供DOM API
+     * 
+     * runtime-dom -> runtime-core -> reactivity
+     */
+    // console.log(createRenderer)
+    // console.log(render)
+    const ele = h('h1', { style: { color: 'red' }, class: 'h1', onClick: () => console.log('first'), a: 1  }, [h('span', { style: { color: 'blue' } }, 'Hello '), h('span', { style: { color: 'green' } }, 'World')])
+    // const ele = h('h1', { style: { color: 'red' }, class: 'h1', onClick: () => console.log('first'), a: 1  }, 'Hello')
+    // const ele2 = h('h2', { style: { color: 'yellow' }, class: 'h1', onClick: () => console.log('first'), a: 1  }, 'Hello ')
+    // render(ele, document.querySelector('#app'))
+
+
+    render(ele, document.querySelector('#app'))
+
+    // setTimeout(() => {
+    //   render(ele2, document.querySelector('#app'))
+    // }, 2000)
+  </script>
+</body>
+</html>
