@@ -1,4 +1,5 @@
 import { ShapeFlags } from "@vue/shared"
+import { isSameVnode } from "./createVnode"
 
 export function createRenderer(renderOptions) {
 
@@ -23,7 +24,9 @@ export function createRenderer(renderOptions) {
   
     const mountElement = (vnode, container) => {
       const { type, children, props, shapeFlag } = vnode
-      let el = hostCreateElement(type) // 创建真实元素
+      // 第一次渲染时，关联虚拟节点和真实节点 vnode.el = 真是dom
+      // 后续更新时，可以和上一次的vnode作对比，之后更新对应的el元素，可以复用这个dom元素
+      let el = (vnode.el = hostCreateElement(type)) // 创建真实元素
   
       if (props) {
         for (const key in props) {
@@ -39,15 +42,62 @@ export function createRenderer(renderOptions) {
   
       hostInsert(el, container)
     }
+
+    const processElement = (n1, n2, container) => {
+      if (n1 == null) {
+        // 初始化操作
+        mountElement(n2, container)
+      } else {
+        // 元素更新操作
+        patchElement(n1, n2, container)
+      }
+    }
+
+    const patchProps = (oldProps, newProps, el) => {
+        // 新的要全部生效
+        for (const key in newProps) {
+          hostPatchProp(el, key, oldProps[key], newProps[key])
+        }
+
+        for (const key in oldProps) {
+          if (!(key in newProps)) {
+            hostPatchProp(el, key, oldProps[key], null)
+          }
+        }
+    }
+
+    /**
+     * 元素更新操作
+     * 1.比较元素的差异
+     * 2.比较元素的字节点和属性
+     * @param n1 
+     * @param n2 
+     * @param container 
+     */
+    const patchElement = (n1, n2, container) => {
+      let el = n2.el = n1.el
+
+      let oldProps = n1.props || {}
+      let newProps = n2.props || {}
+
+      patchProps(oldProps, newProps, el)
+    }
   
     const patch = (n1, n2, container) => {
       // 两次渲染同一个元素，直接跳过
       if (n1 == n2) return 
-  
-      if (n1 == null) {
-        // 初始化操作
-        mountElement(n2, container)
+
+      // 移除旧的元素
+      if (n1 && !isSameVnode(n1, n2)) {
+        unmount(n1)
+        n1 = null
       }
+  
+      processElement(n1, n2, container)
+    }
+
+    const unmount = (vnode) => {
+      hostRemove(vnode.el) // 删除真实dom
     }
     
     /**
@@ -56,6 +106,11 @@ export function createRenderer(renderOptions) {
      * @param container 容器
      */
     const render = (vnode, container) => {
+      if (vnode === null) {
+        if (container._vnode) {
+          unmount(container._vnode)
+        }
+      }
       patch(container._vnode || null, vnode, container)
       container._vnode = vnode // 缓存vnode，方便下次更新使用
     }
