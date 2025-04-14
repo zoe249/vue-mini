@@ -139,7 +139,7 @@ export function triggerEffects(deps) {
     if (!effect._running) {
       if (effect.scheduler) {
         // 如果当前effect不在执行中
-        effect.scheduler()
+        effect.scheduler(effect.fn)
       }
     }
   }
