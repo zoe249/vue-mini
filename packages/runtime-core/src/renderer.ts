@@ -66,6 +66,59 @@ export function createRenderer(renderOptions) {
         }
     }
 
+    const unmountChildren = (children) => {
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        unmount(child) // 递归调用
+      }
+    }
+
+    const patchChildren = (n1, n2, el) => {
+      let c1 = n1.children
+      let c2 = n2.children
+      let prevShapeFlag = n1.shapeFlag
+      let shapeFlag = n2.shapeFlag
+
+      // 1.新节点是文本，旧节点是数组节点 -> 移除旧的
+      // 2.新节点是文本，旧节点是文本 -> 直接替换文本
+      // 3.新节点是数组，旧节点是数组 -> diff算法比较两个数组
+      // 4.旧节点是数组，新节点不是数组 -> 移除旧的
+      // 5.旧节点是文本，新节点是空 -> 移除旧的
+      // 6.旧节点是文本，新节点是数组 -> 添加新的
+
+      if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+          if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+            unmountChildren(c1)
+          }
+
+          if (c1 !== c2) {
+            hostSetElementText(el, c2)
+          }
+      } else {
+        if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) { 
+            // 新的是数组，旧的是数组 -> diff算法
+            // patchKeyedChildren(c1, c2, el)
+            debugger
+          } else {
+            // 旧的是数组，新的是空
+            unmountChildren(c1)
+          }
+        } else {
+          if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+            // 旧的是文本，新的是空
+            hostSetElementText(el, '') 
+          } 
+          if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+            // 旧的是文本，新的是数组
+            mountChildren(c2, el)
+          }
+        }
+      }
+
+      // debugger
+    }
+
     /**
      * 元素更新操作
      * 1.比较元素的差异
@@ -81,6 +134,8 @@ export function createRenderer(renderOptions) {
       let newProps = n2.props || {}
 
       patchProps(oldProps, newProps, el)
+
+      patchChildren(n1, n2, el)
     }
   
     const patch = (n1, n2, container) => {

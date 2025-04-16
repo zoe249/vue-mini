@@ -1,4 +1,4 @@
-export default function patchStyle(el, prevValue, nextValue) {
+export default function patchStyle(el, prevValue, nextValue = {}) {
   let style = el.style
 
   // 写入样式
@@ -8,7 +8,7 @@ export default function patchStyle(el, prevValue, nextValue) {
 
   if (prevValue) {
     for (let key in prevValue) {
-      if (nextValue[key] == null) { // 移除样式
+      if (nextValue && nextValue[key] == null) { // 移除样式
         style[key] = null
       } 
     }
