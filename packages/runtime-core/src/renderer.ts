@@ -73,6 +73,46 @@ export function createRenderer(renderOptions) {
       }
     }
 
+    /**
+     * 比较两个数组的差异
+     * 1.减少比对范围，先从头部开始，再从尾部开始
+     */
+    const patchKeyedChildren = (c1, c2, el) => {
+      let i = 0
+      // 第一个数组的尾部索引
+      let e1 = c1.length - 1
+      // 第二个数组的尾部索引
+      let e2 = c2.length - 1
+
+      // 任何一个数组的索引大于尾部索引，就退出循环
+      while (i <= e1 && i <= e2) {
+        const n1 = c1[i]
+        const n2 = c2[i]
+        if (isSameVnode(n1, n2)) {
+          // 递归调用patch方法
+          patch(n1, n2, el)
+        } else {
+          break
+        }
+        i++
+      }
+
+      // console.log(i, e1, e2)
+
+      while (i <= e1 && i <= e2) {
+        const n1 = c1[e1]
+        const n2 = c2[e2]
+        if (isSameVnode(n1, n2)) {
+          patch(n1, n2, el)
+        } else {
+          break
+        }
+        e1--
+        e2--
+      }
+
+    }
+
     const patchChildren = (n1, n2, el) => {
       let c1 = n1.children
       let c2 = n2.children
@@ -99,7 +139,8 @@ export function createRenderer(renderOptions) {
           if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) { 
             // 新的是数组，旧的是数组 -> diff算法
             // patchKeyedChildren(c1, c2, el)
-            debugger
+            // debugger
+            patchKeyedChildren(c1, c2, el)
           } else {
             // 旧的是数组，新的是空
             unmountChildren(c1)
