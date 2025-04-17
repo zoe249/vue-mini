@@ -22,7 +22,7 @@ export function createRenderer(renderOptions) {
       }
     }
   
-    const mountElement = (vnode, container) => {
+    const mountElement = (vnode, container, anchor) => {
       const { type, children, props, shapeFlag } = vnode
       // 第一次渲染时，关联虚拟节点和真实节点 vnode.el = 真是dom
       // 后续更新时，可以和上一次的vnode作对比，之后更新对应的el元素，可以复用这个dom元素
@@ -40,13 +40,13 @@ export function createRenderer(renderOptions) {
         mountChildren(children, el)
       }
   
-      hostInsert(el, container)
+      hostInsert(el, container, anchor)
     }
 
-    const processElement = (n1, n2, container) => {
+    const processElement = (n1, n2, container, anchor) => {
       if (n1 == null) {
         // 初始化操作
-        mountElement(n2, container)
+        mountElement(n2, container, anchor)
       } else {
         // 元素更新操作
         patchElement(n1, n2, container)
@@ -97,8 +97,6 @@ export function createRenderer(renderOptions) {
         i++
       }
 
-      // console.log(i, e1, e2)
-
       while (i <= e1 && i <= e2) {
         const n1 = c1[e1]
         const n2 = c2[e2]
@@ -111,6 +109,65 @@ export function createRenderer(renderOptions) {
         e2--
       }
 
+      // 确认不变化的节点，对插入和移除做了处理
+      if (i > e1) {
+        if (i <= e2) {
+          let nextPos = e2 + 1
+          let anchor = c2[nextPos]?.el // 下一个元素的真实dom
+          while (i <= e2) {
+            patch(null, c2[i], el, anchor)
+            i++ 
+          }
+        }
+      } else if (i > e2) {
+        if (i <= e1) {
+          while (i <= e1) {
+            unmount(c1[i])
+            i++
+          }
+        }
+      } else {
+        // 乱序的情况
+        let s1 = i
+        let s2 = i
+        
+        // 创建一个映射表，用于快速查找数组中元素的索引
+        const keyToNewIndexMap = new Map()
+        for (let i = s2; i <= e2; i++) {
+          const vnode = c2[i]
+          keyToNewIndexMap.set(vnode.key, i)
+        }
+        
+        for (let i = s1; i <= e1; i++) {
+          const vnode = c1[i]
+          // 通过key查找数组中新元素的索引
+          const newIndex = keyToNewIndexMap.get(vnode.key)
+          if (newIndex == undefined) {
+            // 旧的元素在新的元素中不存在，直接移除
+            unmount(vnode)
+          } else {
+            // 比较前后节点的差异，更新子节点和属性
+            patch(vnode, c2[newIndex], el, null)
+          }
+        }
+        // 调整元素的位置
+        // 调整过程中，可能新的元素比旧的元素多，需要创建新的元素
+        // 插入的个数
+        let toBePatched = e2 - s2 + 1
+        for (let i = toBePatched - 1; i >= 0 ; i--) {
+          // 对应的索引
+          let newIndex = s2 + i
+          let anchor = c2[newIndex + 1]?.el
+          // console.log(anchor, keyToNewIndexMap, newIndex)
+          let vnode = c2[newIndex]
+          if (!vnode.el) {
+            // 新列表中新增的元素
+            patch(null, vnode, el, anchor) // 插入到anchor前面的位置
+          } else {
+            hostInsert(vnode.el, el, anchor)
+          }
+        }
+      }
     }
 
     const patchChildren = (n1, n2, el) => {
@@ -164,8 +221,8 @@ export function createRenderer(renderOptions) {
      * 元素更新操作
      * 1.比较元素的差异
      * 2.比较元素的字节点和属性
-     * @param n1 
-     * @param n2 
+     * @param n1 旧节点
+     * @param n2 新节点
      * @param container 
      */
     const patchElement = (n1, n2, container) => {
@@ -179,7 +236,7 @@ export function createRenderer(renderOptions) {
       patchChildren(n1, n2, el)
     }
   
-    const patch = (n1, n2, container) => {
+    const patch = (n1, n2, container, anchor = null) => {
       // 两次渲染同一个元素，直接跳过
       if (n1 == n2) return 
 
@@ -189,9 +246,12 @@ export function createRenderer(renderOptions) {
         n1 = null
       }
   
-      processElement(n1, n2, container)
+      processElement(n1, n2, container, anchor)
     }
 
+    /**
+     * 删除节点
+     */
     const unmount = (vnode) => {
       hostRemove(vnode.el) // 删除真实dom
     }
