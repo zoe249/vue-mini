@@ -130,7 +130,11 @@ export function createRenderer(renderOptions) {
         // 乱序的情况
         let s1 = i
         let s2 = i
-        
+        // 插入的个数
+        let toBePatched = e2 - s2 + 1
+
+        let newIndexToOldIndexMap = new Array(toBePatched).fill(0)
+        // [4, 2, 3, 0] -> [1, 2] 最长递增子序列对应的索引
         // 创建一个映射表，用于快速查找数组中元素的索引
         const keyToNewIndexMap = new Map()
         for (let i = s2; i <= e2; i++) {
@@ -148,12 +152,13 @@ export function createRenderer(renderOptions) {
           } else {
             // 比较前后节点的差异，更新子节点和属性
             patch(vnode, c2[newIndex], el, null)
+            newIndexToOldIndexMap[newIndex - s2] = i
           }
         }
+
+        console.log(newIndexToOldIndexMap)
         // 调整元素的位置
         // 调整过程中，可能新的元素比旧的元素多，需要创建新的元素
-        // 插入的个数
-        let toBePatched = e2 - s2 + 1
         for (let i = toBePatched - 1; i >= 0 ; i--) {
           // 对应的索引
           let newIndex = s2 + i
