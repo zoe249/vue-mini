@@ -1,5 +1,6 @@
 import { ShapeFlags } from "@vue/shared"
 import { isSameVnode } from "./createVnode"
+import getSequence from "./seq"
 
 export function createRenderer(renderOptions) {
 
@@ -150,13 +151,16 @@ export function createRenderer(renderOptions) {
             // 旧的元素在新的元素中不存在，直接移除
             unmount(vnode)
           } else {
+            newIndexToOldIndexMap[newIndex - s2] = i + 1
             // 比较前后节点的差异，更新子节点和属性
             patch(vnode, c2[newIndex], el, null)
-            newIndexToOldIndexMap[newIndex - s2] = i
           }
         }
 
-        console.log(newIndexToOldIndexMap)
+        let incresingSeq = getSequence(newIndexToOldIndexMap)
+        // 索引
+        let j = incresingSeq.length - 1
+        // console.log(newIndexToOldIndexMap)
         // 调整元素的位置
         // 调整过程中，可能新的元素比旧的元素多，需要创建新的元素
         for (let i = toBePatched - 1; i >= 0 ; i--) {
@@ -169,7 +173,11 @@ export function createRenderer(renderOptions) {
             // 新列表中新增的元素
             patch(null, vnode, el, anchor) // 插入到anchor前面的位置
           } else {
-            hostInsert(vnode.el, el, anchor)
+            if (i == incresingSeq[j]) {
+              j--
+            } else {
+              hostInsert(vnode.el, el, anchor)
+            }
           }
         }
       }
