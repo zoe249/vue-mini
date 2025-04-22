@@ -1,5 +1,5 @@
 import { ShapeFlags } from "@vue/shared"
-import { isSameVnode } from "./createVnode"
+import { isSameVnode, Text } from "./createVnode"
 import getSequence from "./seq"
 
 export function createRenderer(renderOptions) {
@@ -248,6 +248,19 @@ export function createRenderer(renderOptions) {
 
       patchChildren(n1, n2, el)
     }
+
+    const processText = (n1, n2, container, anchor) => {
+        if (n1 == null) {
+          // 创建文本节点
+          hostInsert(n2.el = hostCreateText(n2.children), container)
+        } else {
+          // 文本节点的更新
+          const el = n2.el = n1.el
+          if (n1.children !== n2.children) {
+            hostSetText(el, n2.children)
+          }
+        }
+    }
   
     const patch = (n1, n2, container, anchor = null) => {
       // 两次渲染同一个元素，直接跳过
@@ -258,8 +271,15 @@ export function createRenderer(renderOptions) {
         unmount(n1)
         n1 = null
       }
-  
-      processElement(n1, n2, container, anchor)
+      
+      switch (n2.type) {
+        case Text:
+          processText(n1, n2, container, anchor)
+          break;
+        default:
+          processElement(n1, n2, container, anchor)
+          break;
+      }
     }
 
     /**
@@ -275,13 +295,15 @@ export function createRenderer(renderOptions) {
      * @param container 容器
      */
     const render = (vnode, container) => {
+      // debugger
       if (vnode === null) {
         if (container._vnode) {
           unmount(container._vnode)
         }
+      } else {
+        patch(container._vnode || null, vnode, container)
+        container._vnode = vnode // 缓存vnode，方便下次更新使用
       }
-      patch(container._vnode || null, vnode, container)
-      container._vnode = vnode // 缓存vnode，方便下次更新使用
     }
   
     return {
