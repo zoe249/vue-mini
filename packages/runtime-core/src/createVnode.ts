@@ -2,6 +2,13 @@ import { isObject, isString, ShapeFlags } from '@vue/shared'
 
 export const Text = Symbol('Text')
 
+export const Fragment = Symbol('Fragment')
+
+/**
+ * 判断是否是虚拟节点
+ * @param value 虚拟节点
+ * @returns 是虚拟节点返回true，不是返回false
+ */
 export function isVnode(value) {
   return value.__v_isVnode
 }

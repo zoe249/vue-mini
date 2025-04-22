@@ -1,5 +1,5 @@
 import { ShapeFlags } from "@vue/shared"
-import { isSameVnode, Text } from "./createVnode"
+import { Fragment, isSameVnode, Text } from "./createVnode"
 import getSequence from "./seq"
 
 export function createRenderer(renderOptions) {
@@ -261,6 +261,14 @@ export function createRenderer(renderOptions) {
           }
         }
     }
+
+    const processFragment = (n1, n2, container, anchor) => {
+      if (n1 == null) {
+        mountChildren(n2.children, container)
+      } else {
+        patchChildren(n1, n2, container)
+      }
+    }
   
     const patch = (n1, n2, container, anchor = null) => {
       // 两次渲染同一个元素，直接跳过
@@ -276,6 +284,9 @@ export function createRenderer(renderOptions) {
         case Text:
           processText(n1, n2, container, anchor)
           break;
+        case Fragment:
+          processFragment(n1, n2, container, anchor)
+          break;
         default:
           processElement(n1, n2, container, anchor)
           break;
@@ -286,7 +297,11 @@ export function createRenderer(renderOptions) {
      * 删除节点
      */
     const unmount = (vnode) => {
-      hostRemove(vnode.el) // 删除真实dom
+      if (vnode.type === Fragment) {
+        unmountChildren(vnode.children)
+      } else {
+        hostRemove(vnode.el) // 删除真实dom
+      }
     }
     
     /**
