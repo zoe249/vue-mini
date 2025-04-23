@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { 
+      // createRenderer, 
+      // render,
+      // h,
+      // Text,
+      // Fragment
+    } from '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
+
+    import {
+      createRenderer, 
+      render,
+      h,
+      Text,
+      Fragment
+    } from './runtime-dom.js' 
+    const VueComponent = {
+      data() {
+        return {
+          name: 'Vue',
+          age: 16
+        }
+      },
+      render() {
+        setTimeout(() => {
+          this.age++
+          // this.age++
+          // this.age++
+        }, 1000)
+        // this 指向 VueComponent 实例
+        return h(Fragment, [h(Text, 'hello' + this.name), h(Text, 'age:' + this.age)])
+      }
+    }
+    console.log('first')
+    // 组件两个虚拟节点，h(VueComponent) 是组件的虚拟节点
+    // render 函数返回的虚拟节点，才是要渲染的内容
+    render(h(VueComponent), document.querySelector('#app'))
+  </script>
+</body>
+</html>

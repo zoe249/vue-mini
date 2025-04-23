@@ -1,6 +1,7 @@
 import { ShapeFlags } from "@vue/shared"
 import { Fragment, isSameVnode, Text } from "./createVnode"
 import getSequence from "./seq"
+import { reactive, ReactiveEffect } from "@vue/reactivity"
 
 export function createRenderer(renderOptions) {
 
@@ -269,6 +270,49 @@ export function createRenderer(renderOptions) {
         patchChildren(n1, n2, container)
       }
     }
+    const mountComponent = (n2, container, anchor) => {
+      // 组件可以基于自己的状态重新渲染
+      const { data = () => {}, render } = n2.type
+
+      const state = reactive(data())
+
+      const instance = {
+        state, // 状态
+        vnode: n2, // 虚拟节点
+        subTree: null, // 子节点
+        isMounted: false, // 是否挂载完成
+        update: null // 更新函数
+      }
+
+      const p = Promise.resolve()
+
+      const componentUpdateFn = () => {
+        // 区分是否是第一次渲染
+        if (!instance.isMounted) {
+          const subTree = render.call(state)
+          instance.subTree = subTree
+          patch(null, subTree, container, anchor)
+          instance.isMounted = true
+        } else {
+          const subTree = render.call(state)
+          // 实例上的subTree和新的subTree做比较
+          patch(instance.subTree, subTree, container, anchor)
+        }
+      }
+
+     const update = (instance.update = () => effect.run())
+      
+      const effect = new ReactiveEffect(componentUpdateFn, () => update())
+
+      update()
+    }
+    const processComponent = (n1, n2, container, anchor) => {
+      if (n1 == null) {
+        mountComponent(n2, container, anchor)
+      } else {
+        // 组件更新操作
+      }
+    }
   
     const patch = (n1, n2, container, anchor = null) => {
       // 两次渲染同一个元素，直接跳过
@@ -279,8 +323,8 @@ export function createRenderer(renderOptions) {
         unmount(n1)
         n1 = null
       }
-      
-      switch (n2.type) {
+      const { type, shapeFlag } = n2
+      switch (type) {
         case Text:
           processText(n1, n2, container, anchor)
           break;
@@ -288,7 +332,12 @@ export function createRenderer(renderOptions) {
           processFragment(n1, n2, container, anchor)
           break;
         default:
-          processElement(n1, n2, container, anchor)
+          if (shapeFlag & ShapeFlags.ELEMENT) {
+            processElement(n1, n2, container, anchor)
+          } else if (shapeFlag & ShapeFlags.COMPONENT) {
+            // 对组件的处理，Vue3 已经移除了函数式组件
+            processComponent(n1, n2, container, anchor)
+          }
           break;
       }
     }
