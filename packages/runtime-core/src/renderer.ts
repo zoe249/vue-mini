@@ -272,6 +272,12 @@ export function createRenderer(renderOptions) {
     }
   }
 
+  const updateComponentPreRender = (instance, next) => {
+    instance.next = null
+    instance.vnode = next
+    updateProps(instance, instance.props, next.props)
+  }
+
   const setupRenderEffect = (instance, container, anchor) => {
     const { render } = instance
     const componentUpdateFn = () => {
@@ -282,9 +288,15 @@ export function createRenderer(renderOptions) {
         patch(null, subTree, container, anchor)
         instance.isMounted = true
       } else {
+        const { next } = instance
+        if (next) {
+          // 更新属性和插槽
+          updateComponentPreRender(instance, next)
+        }
         const subTree = render.call(instance.proxy, instance.proxy)
         // 实例上的subTree和新的subTree做比较
         patch(instance.subTree, subTree, container, anchor)
+        instance.subTree = subTree
       }
     }
 
@@ -323,8 +335,6 @@ export function createRenderer(renderOptions) {
   }
 
   const updateProps = (instance, prevProps, nextProps) => {
-    // if (ol)
-    instance.props.address = '环翠区'
     if (hasPropsChange(prevProps, nextProps)) {
       for (const key in nextProps) {
         // 新的属性覆盖旧的属性
@@ -340,14 +350,29 @@ export function createRenderer(renderOptions) {
     }
   }
 
+  /**
+   * 判断组件是否需要更新
+   */
+  const shouldComponentUpdate = (n1, n2,) => {
+    const { props: prevProps, children: prevChildren } = n1
+    const { props: nextProps, children: nextChildren } = n2
+
+    if (prevChildren || nextChildren) return true
+
+    if (prevProps === nextProps) return false
+
+    return hasPropsChange(prevProps, nextProps)
+  }
+
   const updateComponent = (n1, n2) => {
     // 复用组件实例
     const instance = (n2.component = n1.component)
-
-    const { props: prevProps } = n1
-    const { props: nextProps } = n2
-
-    updateProps(instance, prevProps, nextProps)
+    if (shouldComponentUpdate(n1, n2)) {
+      // 更新逻辑
+      // 如果调用update有next属性，说明是属性更新，插槽更新
+      instance.next = n2
+      instance.update()
+    }
   }
 
   const processComponent = (n1, n2, container, anchor) => {
