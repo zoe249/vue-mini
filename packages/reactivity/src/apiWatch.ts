@@ -1,4 +1,4 @@
-import { isFuntion, isObject } from '@vue/shared'
+import { isFunction, isObject } from '@vue/shared'
 import { ReactiveEffect } from './effect'
 import { isReactive } from './reactive'
 import { isRef } from './ref'
@@ -51,7 +51,7 @@ function doWatch(source, cb, { deep, immediate } = {} as OptionsType) {
     getter = () => reactiveGetter(source)
   } else if (isRef(source)) {
     getter = () => source.value
-  } else if (isFuntion(source)) {
+  } else if (isFunction(source)) {
     getter = source
   }
 

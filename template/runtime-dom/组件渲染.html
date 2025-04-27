@@ -24,26 +24,30 @@
       Fragment
     } from './runtime-dom.js' 
     const VueComponent = {
-      data() {
-        return {
-          name: 'Vue',
-          age: 16
-        }
+      props: {
+        name: String,
+        age: Number
       },
-      render() {
-        setTimeout(() => {
-          this.age++
-          // this.age++
-          // this.age++
-        }, 1000)
+      // data: () => {
+      //   return {
+      //     age: 100
+      //   }
+      // },
+      render: (props) => {
+        // this.age = 100
+        // Promise.resolve().then(() => {
+        //   console.log('promise')
+        //   // this.age = 200
+        // })
+        console.log(props)
         // this 指向 VueComponent 实例
-        return h(Fragment, [h(Text, 'hello' + this.name), h(Text, 'age:' + this.age)])
+        return h(Fragment, [h(Text, 'hello' + props.name), h(Text, 'age:' + props.$attrs.a)])
       }
     }
     console.log('first')
     // 组件两个虚拟节点，h(VueComponent) 是组件的虚拟节点
     // render 函数返回的虚拟节点，才是要渲染的内容
-    render(h(VueComponent), document.querySelector('#app'))
+    render(h(VueComponent, { a: 1, b: 2, name: '段金成', age: 13 }), document.querySelector('#app'))
   </script>
 </body>
 </html>

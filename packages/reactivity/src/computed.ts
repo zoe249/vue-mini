@@ -1,4 +1,4 @@
-import { isFuntion } from '@vue/shared'
+import { isFunction } from '@vue/shared'
 import { ReactiveEffect } from './effect'
 import { trackRefValue, triggerRefValue } from './ref'
 
@@ -32,7 +32,7 @@ class ComputedRefImpl {
 }
 
 export function computed(getterOrOptions) {
-  let onlyGetter = isFuntion(getterOrOptions)
+  let onlyGetter = isFunction(getterOrOptions)
 
   let getter
   let setter 
