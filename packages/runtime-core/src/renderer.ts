@@ -303,11 +303,60 @@ export function createRenderer(renderOptions) {
     setupRenderEffect(instance, container, anchor)
   }
 
+  /**
+   * 比较两个对象的属性是否有变化
+   */
+  const hasPropsChange = (prevProps, nextProps) => {
+    const nkeys = Object.keys(nextProps)
+    if (Object.keys(prevProps).length !== nkeys.length) {
+      return true
+    }
+
+    for (let i = 0; i < nkeys.length; i++) {
+      const key = nkeys[i]
+      if (prevProps[key]!== nextProps[key]) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  const updateProps = (instance, prevProps, nextProps) => {
+    // if (ol)
+    instance.props.address = '环翠区'
+    if (hasPropsChange(prevProps, nextProps)) {
+      for (const key in nextProps) {
+        // 新的属性覆盖旧的属性
+        instance.props[key] = nextProps[key]
+      }
+
+      // 移除旧的属性
+      for (const key in instance.props) {
+        if (!(key in nextProps)) {
+          delete instance.props[key] 
+        }
+      }
+    }
+  }
+
+  const updateComponent = (n1, n2) => {
+    // 复用组件实例
+    const instance = (n2.component = n1.component)
+
+    const { props: prevProps } = n1
+    const { props: nextProps } = n2
+
+    updateProps(instance, prevProps, nextProps)
+  }
+
   const processComponent = (n1, n2, container, anchor) => {
     if (n1 == null) {
       mountComponent(n2, container, anchor)
     } else {
+      // debugger
       // 组件更新操作
+      updateComponent(n1, n2)
     }
   }
 

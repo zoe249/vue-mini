@@ -58,7 +58,6 @@ const initProps = (instance, rawProps) => {
   // 不需要深度监听，因为组件的props是不可变的
   instance.props = reactive(props)
   instance.attrs = attrs
-  console.log(instance)
 }
 
 const publicProperty = {
