@@ -1,5 +1,5 @@
 import { proxyRefs, reactive } from '@vue/reactivity'
-import { hasOwn, isFunction } from '@vue/shared'
+import { hasOwn, isFunction, ShapeFlags } from '@vue/shared'
 
 export function createComponentInstance(vnode) {
   const instance = {
@@ -19,6 +19,10 @@ export function createComponentInstance(vnode) {
     update: null,
     props: {},
     attrs: {},
+    /**
+     * 插槽
+     */
+    slots: {}, 
     /**
      * 组件的props选项
      */
@@ -63,7 +67,8 @@ const initProps = (instance, rawProps) => {
 }
 
 const publicProperty = {
-  $attrs: instance => instance.attrs
+  $attrs: instance => instance.attrs,
+  $slots: instance => instance.slots
   //...
 }
 
@@ -100,13 +105,23 @@ const handler = {
   }
 }
 
+export function initSlots(instance, children) {
+  if (instance.vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) { // 有slots
+    instance.slots = children
+  } else { // 没有slots
+    instance.slots = {}
+  }
+}
+
 export function setupComponent(instance) {
   const { vnode } = instance
   /**
    * 赋值属性
    */
   initProps(instance, vnode.props || {})
-
+  initSlots(instance, vnode.children)
+  console.log(instance.slots)
+  // debugger
   /**
    * 赋值代理对象
    */
@@ -125,10 +140,11 @@ export function setupComponent(instance) {
     }
   }
 
-  if (!isFunction(data)) console.warn('data option must be a function')
+  if (data) {
+    !isFunction(data) && console.warn('data option must be a function')
+    instance.data = isFunction(data) && reactive(data.call(instance.proxy))
+  }
   
-  instance.data = data && reactive(data.call(instance.proxy))
-
   if (!instance.render) {
     instance.render = render
   }
