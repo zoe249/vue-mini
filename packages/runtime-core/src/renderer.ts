@@ -417,8 +417,12 @@ export function createRenderer(renderOptions) {
    * 删除节点
    */
   const unmount = vnode => {
+    const { shapeFlag } = vnode
     if (vnode.type === Fragment) {
       unmountChildren(vnode.children)
+    } else if (shapeFlag & ShapeFlags.COMPONENT) {
+      // 组件卸载
+      unmount(vnode.component.subTree)
     } else {
       hostRemove(vnode.el) // 删除真实dom
     }
