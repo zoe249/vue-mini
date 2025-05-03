@@ -45,7 +45,8 @@ export function createVnode(type, props, children?) {
      * 虚拟节点对应的真实节点
      */
     el: null,
-    shapeFlag
+    shapeFlag,
+    ref: props?.ref
   }
 
   if (children) {
