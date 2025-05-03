@@ -121,7 +121,6 @@ export function setupComponent(instance) {
    */
   initProps(instance, vnode.props || {})
   initSlots(instance, vnode.children)
-  console.log(instance.slots)
   // debugger
   /**
    * 赋值代理对象
@@ -144,7 +143,9 @@ export function setupComponent(instance) {
         handler && handler(...payload)
       }
     }
+    setCurrentInstance(instance)
     const setupResult = setup(instance.props, setupContext)
+    unsetCurrentInstance()
     if (isFunction(setupResult)) {
       instance.render = setupResult
     } else {
@@ -161,4 +162,17 @@ export function setupComponent(instance) {
   if (!instance.render) {
     instance.render = render
   }
+}
+
+export let currentInstance = null
+export const getCurrentInstance = () => {
+  return currentInstance
+}
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance
+}
+
+export function unsetCurrentInstance() {
+  currentInstance = null
 }
