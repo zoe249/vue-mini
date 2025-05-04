@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { 
+      // ref,
+      // createRenderer, 
+      // render,
+      // h,
+      // Text,
+      // Fragment,
+      // onBeforeMount,
+      // onMounted,
+      // onBeforeUpdate,
+      // onUpdated
+    } from '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
+
+    import {
+      ref,
+      createRenderer, 
+      render,
+      h,
+      Text,
+      Fragment,
+      onBeforeMount,
+      onMounted,
+      onBeforeUpdate,
+      onUpdated,
+      getCurrentInstance
+    } from './runtime-dom.js' 
+
+    /**
+     * 组件更新 状态 属性 插槽
+     * 
+    */
+    const Mycomponent = {
+      setup(props, {emit, attrs, expose, slots}) {
+        // debugger
+        const c1 = ref('c1')
+        // expose({c1: 200})
+
+        const value = ref(10)
+        return (proxy) => {
+          return h('div', 'aaaaa')
+        }
+      }
+
+    }
+    const VueComponent = {
+      setup(propxy, {emit, attrs, expose, slots}) {
+        // debugger
+        const comp = ref(null)
+        expose({ a: 1 })
+
+        onMounted(() => {
+          console.log('comp', comp.value)
+          console.log('parent mounted')
+        })
+
+        const value = ref(10)
+        return (proxy) => {
+          // return h(Mycomponent, { a: value.value }, [
+          // h('button', { onClick: () => value.value = value.value + 1 }, '点击'+ value.value)
+          // ])
+          return h(Mycomponent, { value: value, ref: comp }, )
+        }
+      }
+    }
+    render(h(VueComponent, {
+      onMyEvent: (value) => {
+        alert('my event' + value)
+      }
+    }), document.querySelector('#app'))
+
+    // setTimeout(() => {
+    //   render(h(null, {}), document.querySelector('#app'))
+    // }, 1000)
+  </script>
+</body>
+</html>

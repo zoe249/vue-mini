@@ -279,6 +279,17 @@ export function createRenderer(renderOptions) {
     updateProps(instance, instance.props, next.props)
   }
 
+  function renderComponent(instance) {
+    // 1.获取组件的render函数
+    const { render, vnode, proxy, props, attrs } = instance
+    if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+      return render.call(proxy, proxy)
+    } else {
+      // 函数组件
+      return vnode.type(attrs)
+    }
+  }
+
   const setupRenderEffect = (instance, container, anchor) => {
     const { render } = instance
     const componentUpdateFn = () => {
@@ -290,7 +301,7 @@ export function createRenderer(renderOptions) {
           invokeArray(bm)
         }
 
-        const subTree = render.call(instance.proxy, instance.proxy)
+        const subTree = renderComponent(instance)
         instance.subTree = subTree
         patch(null, subTree, container, anchor)
         instance.isMounted = true
@@ -308,7 +319,7 @@ export function createRenderer(renderOptions) {
         if (bu) {
           invokeArray(bu)
         }
-        const subTree = render.call(instance.proxy, instance.proxy)
+        const subTree = renderComponent(instance)
         // 实例上的subTree和新的subTree做比较
         patch(instance.subTree, subTree, container, anchor)
         instance.subTree = subTree
