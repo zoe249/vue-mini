@@ -36,7 +36,7 @@ export function createRenderer(renderOptions) {
   };
 
   const mountElement = (vnode, container, anchor, parentComponent) => {
-    const { type, children, props, shapeFlag } = vnode;
+    const { type, children, props, shapeFlag, transition } = vnode;
     // 第一次渲染时，关联虚拟节点和真实节点 vnode.el = 真是dom
     // 后续更新时，可以和上一次的vnode作对比，之后更新对应的el元素，可以复用这个dom元素
     let el = (vnode.el = hostCreateElement(type)); // 创建真实元素
@@ -52,8 +52,14 @@ export function createRenderer(renderOptions) {
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(children, el, parentComponent);
     }
-
+    if (transition) {
+      transition.beforeEnter(el);
+    }
     hostInsert(el, container, anchor);
+
+    if (transition) {
+      transition.enter(el);
+    }
   };
 
   const processElement = (n1, n2, container, anchor, parentComponent) => {
@@ -287,16 +293,19 @@ export function createRenderer(renderOptions) {
     instance.next = null;
     instance.vnode = next;
     updateProps(instance, instance.props, next.props);
+
+    // 组件更新的时候，需要更新插槽
+    Object.assign(instance.slots, next.children);
   };
 
   function renderComponent(instance) {
     // 1.获取组件的render函数
-    const { render, vnode, proxy, props, attrs } = instance;
+    const { render, vnode, proxy, props, attrs, slots } = instance;
     if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
       return render.call(proxy, proxy);
     } else {
       // 函数组件
-      return vnode.type(attrs);
+      return vnode.type(attrs, {slots});
     }
   }
 
@@ -491,7 +500,8 @@ export function createRenderer(renderOptions) {
    * 删除节点
    */
   const unmount = (vnode) => {
-    const { shapeFlag } = vnode;
+    const { shapeFlag, transition, el } = vnode;
+    const performRemove = () => hostRemove(vnode.el); // 删除真实dom
     if (vnode.type === Fragment) {
       unmountChildren(vnode.children);
     } else if (shapeFlag & ShapeFlags.COMPONENT) {
@@ -500,7 +510,12 @@ export function createRenderer(renderOptions) {
     } else if (shapeFlag & ShapeFlags.TELEPORT) {
       vnode.type.remove(vnode, unmountChildren)
     } else {
-      hostRemove(vnode.el); // 删除真实dom
+      if (transition) {
+        transition.leave(el, performRemove)
+      } else {
+        performRemove();
+      }
+      // hostRemove(vnode.el); // 删除真实dom
     }
   };
 

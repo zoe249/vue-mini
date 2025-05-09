@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<style></style>
+<body>
+  <style>
+    /* 下面我们会解释这些 class 是做什么的 */
+    .v-enter-active,
+    .v-leave-active {
+      transition: opacity 1.3s ease;
+    }
+
+    .v-enter-from,
+    .v-leave-to {
+      opacity: 0;
+    }
+  </style>
+  <div id="app"></div>
+  <script type="module">
+    import { 
+      // createRenderer, 
+      // render,
+      // h,
+      // Text,
+      // Fragment
+      // Transition
+    } from '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
+
+    import {
+      createRenderer, 
+      render,
+      h,
+      Text,
+      Fragment,
+      ref,
+      Transition
+    } from './runtime-dom.js' 
+
+    const props = {
+      name: 'v',
+      onBeforeEnter(el) {
+        console.log(arguments, 'before enter')
+      },
+      onEnter(el) {
+        console.log(arguments, 'enter')
+      },
+      onLeave(el) {
+        console.log(arguments, 'leave')
+      },
+    }
+
+    render(h(Transition, props, {
+      default: () => h('div', { key: 1, style: { width: '100px', height: '100px', background: 'red' } },  'hello')
+    }), app)
+
+    setTimeout(() => {
+      render(h(Transition, props, {
+        default: () => h('div', { key: 2, style: { width: '100px', height: '100px', background: 'orange', display: 'block' } },  'hello')
+      }), app)
+    }, 1000)
+  </script>
+</body>
+</html>
