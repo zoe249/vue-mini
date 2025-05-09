@@ -52,6 +52,7 @@ export function resolveTransitionProps(props) {
       }
       onLeave && onLeave(el, resolve)
       el.classList.add(leaveFromClass) // 离开动画不能立即执行
+      document.body.offsetHeight // 强制重绘
       el.classList.add(leaveActiveClass)
 
       nextFrame(() => {
