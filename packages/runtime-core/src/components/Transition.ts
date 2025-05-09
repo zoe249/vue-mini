@@ -44,12 +44,13 @@ export function resolveTransitionProps(props) {
       })
     },
     onLeave(el, done) {
+      // debugger
       const resolve = () => {
         el.classList.remove(leaveActiveClass)
         el.classList.remove(leaveToClass)
         done && done()
       }
-      onEnter && onEnter(el, resolve)
+      onLeave && onLeave(el, resolve)
       el.classList.add(leaveFromClass) // 离开动画不能立即执行
       el.classList.add(leaveActiveClass)
 
@@ -57,7 +58,7 @@ export function resolveTransitionProps(props) {
         el.classList.remove(leaveFromClass)
         el.classList.add(leaveToClass)
 
-        if (!onLeave || !onLeave.length) {
+        if (!onLeave || onLeave.length <= 1) {
           el.addEventListener('transitionend', resolve)
         }
       })
