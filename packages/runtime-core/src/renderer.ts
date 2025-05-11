@@ -5,6 +5,7 @@ import { isRef, reactive, ReactiveEffect } from "@vue/reactivity";
 import { queueJob } from "./scheduler";
 import { createComponentInstance, setupComponent } from "./component";
 import { invokeArray } from "./apiLifecycle";
+import { isKeepAlive } from "./components/KeepAlive";
 
 export function createRenderer(renderOptions) {
   const {
@@ -292,7 +293,7 @@ export function createRenderer(renderOptions) {
   const updateComponentPreRender = (instance, next) => {
     instance.next = null;
     instance.vnode = next;
-    updateProps(instance, instance.props, next.props);
+    updateProps(instance, instance.props, next.props || {});
 
     // 组件更新的时候，需要更新插槽
     Object.assign(instance.slots, next.children);
@@ -363,6 +364,16 @@ export function createRenderer(renderOptions) {
       vnode,
       parentComponent
     ));
+
+    if (isKeepAlive(vnode)) {
+      instance.ctx.renderer = {
+        createElement: hostCreateElement, // 内部需要创建一个div缓存dom
+        move(vnode, container) { // 需要把之前渲染的dom放到容器中
+          hostInsert(vnode.component.subTree.el, container)
+        },
+        unmount
+      }
+    }
     // 2.给实例的属性赋值
     setupComponent(instance);
     // 3.创建一个effect，让组件的render函数执行
@@ -415,7 +426,7 @@ export function createRenderer(renderOptions) {
 
     if (prevProps === nextProps) return false;
 
-    return hasPropsChange(prevProps, nextProps);
+    return hasPropsChange(prevProps, nextProps || {});
   };
 
   const updateComponent = (n1, n2) => {

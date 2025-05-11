@@ -40,7 +40,12 @@ export function createComponentInstance(vnode, parent) {
     setupState: {},
     exposed: null,
     parent,
-    provides: parent ? parent.provides : Object.create(null)
+    provides: parent ? parent.provides : Object.create(null),
+
+    /**
+     * 上下文，如果是KeepAlive的话，需要记录keepAlive的实例
+     */
+    ctx: {} as any,
   }
 
   return instance
