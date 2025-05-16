@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style></style>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import // createRenderer,
+      // render,
+      // h,
+      // Text,
+      // Fragment,
+      // Transition,
+      // onMounted,
+      // KeepAlive,
+      // defineAsyncComponent
+      '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
+
+      import {
+        createRenderer,
+        render,
+        h,
+        Text,
+        Fragment,
+        ref,
+        Transition,
+        KeepAlive,
+        onMounted,
+        defineAsyncComponent
+      } from './runtime-dom.js'
+
+      const asyncComp = import('./asyncComponent.js')
+      console.log(asyncComp)
+      /**
+       * 异步组件
+       * */
+      const index = 2
+      let i = 0
+      const MyComponent = defineAsyncComponent({
+        loader: () => {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              if (i++ == 2) {
+                resolve({
+                  render: () => {
+                    return h('div', {}, '异步组件')
+                  }
+                })
+              } else {
+                reject({
+                  render: () => {
+                    return h('div', '异步组件加载失败')
+                  }
+                })
+              }
+            }, 2000)
+          })
+        },
+        timeout: 1000,
+        delay: 500,
+        loadingComponent: {
+          render: () => {
+            return h('div', {}, '加载中')
+          }
+        },
+        errorComponent: {
+          render: () => {
+            return h('div', {}, '加载失败')
+          }
+        },
+        onError(error, retry, fail, i) {
+          console.log(error, retry, fail, i)
+        }
+      })
+      render(h(MyComponent), app)
+    </script>
+  </body>
+</html>
