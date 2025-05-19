@@ -1,9 +1,9 @@
-import { isFunction, isObject, isString, ShapeFlags } from "@vue/shared";
-import { isTeleport } from "./components/Teleport";
+import { isFunction, isObject, isString, ShapeFlags } from '@vue/shared'
+import { isTeleport } from './components/Teleport'
 
-export const Text = Symbol("Text");
+export const Text = Symbol('Text')
 
-export const Fragment = Symbol("Fragment");
+export const Fragment = Symbol('Fragment')
 
 /**
  * 判断是否是虚拟节点
@@ -11,7 +11,7 @@ export const Fragment = Symbol("Fragment");
  * @returns 是虚拟节点返回true，不是返回false
  */
 export function isVnode(value) {
-  return value.__v_isVnode;
+  return value.__v_isVnode
 }
 
 /**
@@ -21,7 +21,7 @@ export function isVnode(value) {
  * @returns 相同返回true，不同返回false
  */
 export function isSameVnode(n1, n2) {
-  return n1.type === n2.type && n1.key === n2.key;
+  return n1.type === n2.type && n1.key === n2.key
 }
 
 export function createVnode(type, props, children?, patchFlag?) {
@@ -33,7 +33,7 @@ export function createVnode(type, props, children?, patchFlag?) {
     ? ShapeFlags.STATEFUL_COMPONENT
     : isFunction(type)
     ? ShapeFlags.FUNCTIONAL_COMPONENT // 组件
-    : 0;
+    : 0
   const vnode = {
     /**
      * 表示是一个虚拟节点
@@ -52,45 +52,57 @@ export function createVnode(type, props, children?, patchFlag?) {
     el: null,
     shapeFlag,
     ref: props?.ref,
-    patchFlag,
-  };
+    patchFlag
+  }
+
+  if (currentBlock && patchFlag > 0) {
+    currentBlock.push(vnode)
+  }
 
   if (children) {
     if (Array.isArray(children)) {
-      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.ARRAY_CHILDREN;
+      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.ARRAY_CHILDREN
     } else if (isObject(children)) {
       // 组件的slots
-      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.SLOTS_CHILDREN;
+      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.SLOTS_CHILDREN
     } else {
-      children = String(children);
-      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.TEXT_CHILDREN;
+      children = String(children)
+      vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.TEXT_CHILDREN
     }
   }
 
-  return vnode;
+  return vnode
 }
 
-let currentBlock = null;
+let currentBlock = null
 export function openBlock() {
-  currentBlock = []; // 收集动态节点
+  currentBlock = [] // 收集动态节点
 }
 
 export function closeBlock() {
-  currentBlock = null;
+  currentBlock = null
 }
 
 export function setupBlock(vnode) {
-  vnode.dynamicChildren = currentBlock; // 当前elementBlock会收集子节点，用当前的block来收集
-  closeBlock();
-  return vnode;
+  vnode.dynamicChildren = currentBlock // 当前elementBlock会收集子节点，用当前的block来收集
+  closeBlock()
+  return vnode
 }
 /**
  * block 有收集虚拟节点的能力
  */
 export function createELementBlock(type, props, children, patchFlag?) {
-  setupBlock(createVnode(type, props, children, patchFlag))
+  return setupBlock(createVnode(type, props, children, patchFlag))
 }
 
-export {
-  createVnode as createElementVnode,
+export function toDisplayString(value) {
+  return isString(value)
+    ? value
+    : value == null
+    ? ''
+    : isObject(value)
+    ? JSON.stringify(value)
+    : String(value)
 }
+
+// export { createVnode as createElementVnode }
