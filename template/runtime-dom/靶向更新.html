@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style></style>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // import // createElementVNode as _createElementVNode,
+      // toDisplayString as _toDisplayString,
+      // openBlock as _openBlock,
+      // createElementBlock as _createElementBlock,
+      // toRefs,
+      // render,
+      // h,
+      // reactive
+      // '/node_modules/vue/dist/vue.esm-browser.js'
+
+      import * as moduleTotal from './runtime-dom.js'
+      const {
+        createELementBlock,
+        // toDisplayString,
+        openBlock,
+        render,
+        h,
+        reactive,
+        toRefs,
+        openBlock: _openBlock,
+        // createElementBlock: _createElementBlock,
+        createVnode: _createElementVNode ,
+        toDisplayString: _toDisplayString,
+      } = moduleTotal
+      console.log(createELementBlock, moduleTotal)
+      const MyComponent = {
+        name: 'MyComponent',
+        setup() {
+          const state = reactive({ name: 'join' })
+
+          setTimeout(() => {
+            state.name = 'join2'
+          }, 2000)
+          return {
+            ...toRefs(state)
+          }
+        },
+        render(_ctx) {
+          const vnode =
+            (_openBlock(),
+            createELementBlock('div', null, [
+              _createElementVNode('h1', null, 'Hello, World', 1 /* TEXT */),
+              _createElementVNode(
+                'span',
+                null,
+                _toDisplayString(_ctx.name),
+                1 /* TEXT */ // 模板编译时，Vue会自动编译
+              )
+            ]))
+          console.log('vnode', vnode)
+          return vnode
+        }
+      }
+
+      render(h(MyComponent), app)
+    </script>
+  </body>
+</html>

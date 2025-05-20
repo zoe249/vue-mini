@@ -92,7 +92,9 @@ export function setupBlock(vnode) {
  * block 有收集虚拟节点的能力
  */
 export function createELementBlock(type, props, children, patchFlag?) {
-  return setupBlock(createVnode(type, props, children, patchFlag))
+  const vnode = createVnode(type, props, children, patchFlag)
+
+  return setupBlock(vnode)
 }
 
 export function toDisplayString(value) {
