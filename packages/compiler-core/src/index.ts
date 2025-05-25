@@ -48,6 +48,48 @@ function parseText(context) {
   }
 }
 
+function advanceSpace(context) {
+  const match = /^[ \t\r\n]+/.exec(context.source)
+
+  if (match) { // 删除空格
+    advanceBy(context, match[0].length)
+  }
+}
+
+function parseTag(context) {  
+  const start = getCursor(context)
+  const match = /^<\/?([a-z][^ \t\r\n/>]*)/.exec(context.source)
+  const tag = match[1]
+
+  advanceBy(context, match[0].length) // 删除匹配到的内容
+
+  advanceSpace(context) // 删除空格
+
+  const isSelfCLosing = context.source.startsWith('/>')
+
+  advanceBy(context, isSelfCLosing ? 2 : 1) // 根据是否自闭合删除不同的内容
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
+    isSelfCLosing,
+    loc: getSelection(context, start) // 开头标签解析的信息
+  }
+}
+
+function parseElement(context) {
+  // <div></div> => div
+  const ele = parseTag(context);
+
+  if (context.source.startsWith('</')) {
+    parseTag(context) // 闭合标签没有意义，直接删除
+  }
+
+  (ele as any).children = [];
+  (ele as any).loc = getSelection(context, ele.loc.start)
+
+  return ele
+}
+
 function parseChildren(content) {
   const nodes = []
   while (!isEnd(content)) {
@@ -56,7 +98,7 @@ function parseChildren(content) {
     if (c.startsWith('{{')) {
       node = '表达式'
     } else if (c[0] === '<') {
-      node = '元素'
+      node = parseElement(content)
     } else {
       node = parseText(content)
       
